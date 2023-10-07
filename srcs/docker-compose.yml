@@ -1,19 +1,43 @@
 version: '3.7'
 
-services:
+volumes:
+  v_mariadb:
+    name: v_mariadb
+    driver: local
+    driver_opts:
+      device: /Users/iqabbal/Desktop/data/v_mariadb
+      # device: /home/iqabbal/data/v_mariadb
+      type: none
+      o: bind
+ 
+  v_wordpress:
+    name: v_wordpress
+    driver: local
+    driver_opts:
+      device: /Users/iqabbal/Desktop/data/v_wordpress
+      # device: /home/iqabbal/data/v_wordpress
+      type: none
+      o: bind
 
-  mariadb:
-    build: ./requirements/mariadb
-    container_name: mariadb
-    image: mariadb:mariadb
+networks:
+  incepNet:
+    name: incepNet
+
+services:
+  nginx:
+    build: ./requirements/nginx
+    container_name: nginx
+    image: nginx:nginx
     env_file: .env
     restart: always
+    depends_on:
+      - wordpress
+    ports:
+      - "443:443"
     networks:
       - incepNet
-    ports:
-      - 3306
     volumes:
-      - v_mariadb:/var/lib/mysql:rw
+      - v_wordpress:/var/www/html:rw
 
   wordpress:
     build: ./requirements/wordpress
@@ -29,38 +53,17 @@ services:
       - incepNet
     volumes:
       - v_wordpress:/var/www/html:rw
-      
-  nginx:
-    build: ./requirements/nginx
-    container_name: nginx
-    image: nginx:nginx
+
+  mariadb:
+    build: ./requirements/mariadb
+    container_name: mariadb
+    image: mariadb:mariadb
     env_file: .env
     restart: always
-    depends_on:
-      - wordpress
-    ports:
-      - "443:443"
     networks:
       - incepNet
+    ports:
+      - 3306
     volumes:
-      - v_wordpress:/var/www/html:rw
-volumes:
-  v_mariadb:
-    name: v_mariadb
-    driver: local
-    driver_opts:
-      device: /home/iqabbal/data/v_mariadb
-      type: none
-      o: bind
- 
-  v_wordpress:
-    name: v_wordpress
-    driver: local
-    driver_opts:
-      device: /home/iqabbal/data/v_wordpress
-      type: none
-      o: bind
-
-networks:
-  incepNet:
-    name: incepNet
+      - v_mariadb:/var/lib/mysql:rw
+  
